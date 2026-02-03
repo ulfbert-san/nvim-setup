@@ -54,7 +54,7 @@ $WingetPackages = @(
     @{ Id = "Neovim.Neovim"; Name = "Neovim" },
     @{ Id = "Git.Git"; Name = "Git" },
     @{ Id = "LLVM.LLVM"; Name = "LLVM/Clang (C-Compiler)" },
-    @{ Id = "BurntSushi.ripgrep"; Name = "ripgrep" },
+    @{ Id = "BurntSushi.ripgrep.MSVC"; Name = "ripgrep" },
     @{ Id = "sharkdp.fd"; Name = "fd" },
     @{ Id = "junegunn.fzf"; Name = "fzf" },
     @{ Id = "JesseDuffield.lazygit"; Name = "lazygit" },
@@ -66,7 +66,7 @@ $MinimalPackages = @(
     @{ Id = "Neovim.Neovim"; Name = "Neovim" },
     @{ Id = "Git.Git"; Name = "Git" },
     @{ Id = "LLVM.LLVM"; Name = "LLVM/Clang (C-Compiler)" },
-    @{ Id = "BurntSushi.ripgrep"; Name = "ripgrep" },
+    @{ Id = "BurntSushi.ripgrep.MSVC"; Name = "ripgrep" },
     @{ Id = "sharkdp.fd"; Name = "fd" }
 )
 
