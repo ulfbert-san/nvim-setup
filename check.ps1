@@ -142,12 +142,6 @@ if (Test-Path $netcoredbgPath) {
     $failed++
 }
 
-# ============================================================================
-# LUA ENTWICKLUNG
-# ============================================================================
-Write-Host "`n=== Lua Entwicklung ===" -ForegroundColor Yellow
-
-if (Test-Tool "lua-language-server" "Lua Language Server" "--version" "winget install sumneko.lua-language-server") { $passed++ } else { $failed++ }
 
 # ============================================================================
 # NEOVIM KONFIGURATION

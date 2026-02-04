@@ -62,8 +62,7 @@ $WingetPackages = @(
     @{ Id = "sharkdp.fd"; Name = "fd" },
     @{ Id = "junegunn.fzf"; Name = "fzf" },
     @{ Id = "JesseDuffield.lazygit"; Name = "lazygit" },
-    @{ Id = "Microsoft.DotNet.SDK.8"; Name = ".NET SDK 8" },
-    @{ Id = "sumneko.lua-language-server"; Name = "Lua Language Server" }
+    @{ Id = "Microsoft.DotNet.SDK.8"; Name = ".NET SDK 8" }
 )
 
 $MinimalPackages = @(
@@ -389,7 +388,7 @@ if (-not $Minimal -and -not $SkipFlutter) {
 }
 
 Write-Host "`nInstallierte Tools pruefen:" -ForegroundColor Cyan
-$tools = @("nvim", "git", "clang", "rg", "fd", "fzf", "lazygit", "dotnet", "lua-language-server")
+$tools = @("nvim", "git", "clang", "rg", "fd", "fzf", "lazygit", "dotnet")
 foreach ($tool in $tools) {
     $status = if (Test-CommandExists $tool) { "[OK]" } else { "[--]" }
     $color = if ($status -eq "[OK]") { "Green" } else { "Yellow" }
