@@ -83,14 +83,15 @@ if (Test-Tool "git" "Git" "--version" "winget install Git.Git") { $passed++ } el
 Write-Host "`n=== Compiler (Treesitter) ===" -ForegroundColor Yellow
 
 $hasCompiler = $false
-if (Test-Tool "clang" "Clang" "--version" "winget install LLVM.LLVM") { $hasCompiler = $true; $passed++ }
+# Zig zuerst pruefen (bevorzugt)
+if (Test-Tool "zig" "Zig" "version" "winget install zig.zig") { $hasCompiler = $true; $passed++ }
+elseif (Test-Tool "clang" "Clang" "--version" "winget install LLVM.LLVM") { $hasCompiler = $true; $passed++ }
 elseif (Test-Tool "gcc" "GCC" "--version") { $hasCompiler = $true; $passed++ }
-elseif (Test-Tool "zig" "Zig" "version") { $hasCompiler = $true; $passed++ }
 elseif (Test-Tool "cl" "MSVC (cl.exe)" "" "Visual Studio Build Tools") { $hasCompiler = $true; $passed++ }
 else { $failed++ }
 
 if (-not $hasCompiler) {
-    Write-Info "Mindestens einer benoetigt: clang, gcc, zig oder cl"
+    Write-Info "Mindestens einer benoetigt: zig (empfohlen), clang, gcc oder cl"
 }
 
 # ============================================================================
@@ -169,6 +170,21 @@ if (Test-Path "$nvimConfigPath\init.lua") {
 } else {
     Write-Fail "Neovim Config nicht gefunden"
     Write-Info "git clone https://github.com/ulfbert-san/nvimconfig.git $nvimConfigPath"
+    $failed++
+}
+
+# ============================================================================
+# LOKALES PLUGIN
+# ============================================================================
+Write-Host "`n=== Lokales Plugin ===" -ForegroundColor Yellow
+
+$asyncompletePath = "C:\Users\$env:USERNAME\Repos\asyncomplete-omnisharp"
+if (Test-Path "$asyncompletePath\.git") {
+    Write-OK "asyncomplete-omnisharp ($asyncompletePath)"
+    $passed++
+} else {
+    Write-Fail "asyncomplete-omnisharp nicht gefunden"
+    Write-Info "git clone https://github.com/ulfbert-san/asyncomplete-omnisharp.git $asyncompletePath"
     $failed++
 }
 

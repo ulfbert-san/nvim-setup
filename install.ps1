@@ -49,11 +49,16 @@ function Write-Error { param($msg) Write-Host "[-] $msg" -ForegroundColor Red }
 $NvimConfigRepo = "https://github.com/ulfbert-san/nvimconfig.git"
 $NvimConfigPath = "$env:LOCALAPPDATA\nvim"
 
+# Lokales Plugin
+$AsyncompleteRepo = "https://github.com/ulfbert-san/asyncomplete-omnisharp.git"
+$AsyncompletePath = "C:\Users\$env:USERNAME\Repos\asyncomplete-omnisharp"
+
 # Tools die via winget installiert werden
+# Hinweis: zig statt LLVM - kleiner, schneller, zuverlaessigerer PATH
 $WingetPackages = @(
     @{ Id = "Neovim.Neovim"; Name = "Neovim" },
     @{ Id = "Git.Git"; Name = "Git" },
-    @{ Id = "LLVM.LLVM"; Name = "LLVM/Clang (C-Compiler)" },
+    @{ Id = "zig.zig"; Name = "Zig (C-Compiler fuer Treesitter)" },
     @{ Id = "BurntSushi.ripgrep.MSVC"; Name = "ripgrep" },
     @{ Id = "sharkdp.fd"; Name = "fd" },
     @{ Id = "junegunn.fzf"; Name = "fzf" },
@@ -65,7 +70,7 @@ $WingetPackages = @(
 $MinimalPackages = @(
     @{ Id = "Neovim.Neovim"; Name = "Neovim" },
     @{ Id = "Git.Git"; Name = "Git" },
-    @{ Id = "LLVM.LLVM"; Name = "LLVM/Clang (C-Compiler)" },
+    @{ Id = "zig.zig"; Name = "Zig (C-Compiler fuer Treesitter)" },
     @{ Id = "BurntSushi.ripgrep.MSVC"; Name = "ripgrep" },
     @{ Id = "sharkdp.fd"; Name = "fd" }
 )
@@ -269,23 +274,34 @@ function Clone-NvimConfig {
 }
 
 function Setup-AsyncompleteOmnisharp {
-    Write-Step "Richte asyncomplete-omnisharp Plugin ein..."
+    Write-Step "Klone asyncomplete-omnisharp Plugin..."
 
-    $pluginPath = "C:\Users\$env:USERNAME\Repos\asyncomplete-omnisharp"
-
-    if (Test-Path $pluginPath) {
+    if (Test-Path "$AsyncompletePath\.git") {
         Write-Success "asyncomplete-omnisharp existiert bereits"
+        Write-Host "    Aktualisiere mit git pull..."
+        Push-Location $AsyncompletePath
+        git pull
+        Pop-Location
         return
     }
 
     if ($DryRun) {
-        Write-Warning "DryRun: Wuerde asyncomplete-omnisharp Plugin erstellen"
+        Write-Warning "DryRun: git clone $AsyncompleteRepo $AsyncompletePath"
         return
     }
 
-    Write-Warning "asyncomplete-omnisharp ist ein lokales Plugin"
-    Write-Host "    Falls du dieses Plugin hast, klone es nach:" -ForegroundColor White
-    Write-Host "    $pluginPath" -ForegroundColor White
+    # Stelle sicher dass Repos-Ordner existiert
+    $reposDir = Split-Path $AsyncompletePath -Parent
+    if (-not (Test-Path $reposDir)) {
+        New-Item -ItemType Directory -Force -Path $reposDir | Out-Null
+    }
+
+    git clone $AsyncompleteRepo $AsyncompletePath
+    if ($LASTEXITCODE -eq 0) {
+        Write-Success "asyncomplete-omnisharp geklont nach $AsyncompletePath"
+    } else {
+        Write-Warning "asyncomplete-omnisharp konnte nicht geklont werden"
+    }
 }
 
 function Refresh-Environment {
@@ -374,7 +390,7 @@ if (-not $Minimal -and -not $SkipFlutter) {
 }
 
 Write-Host "`nInstallierte Tools pruefen:" -ForegroundColor Cyan
-$tools = @("nvim", "git", "clang", "rg", "fd", "fzf", "lazygit", "dotnet", "lua-language-server")
+$tools = @("nvim", "git", "zig", "rg", "fd", "fzf", "lazygit", "dotnet", "lua-language-server")
 foreach ($tool in $tools) {
     $status = if (Test-CommandExists $tool) { "[OK]" } else { "[--]" }
     $color = if ($status -eq "[OK]") { "Green" } else { "Yellow" }
