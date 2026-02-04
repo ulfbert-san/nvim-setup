@@ -83,15 +83,14 @@ if (Test-Tool "git" "Git" "--version" "winget install Git.Git") { $passed++ } el
 Write-Host "`n=== Compiler (Treesitter) ===" -ForegroundColor Yellow
 
 $hasCompiler = $false
-# Zig zuerst pruefen (bevorzugt)
-if (Test-Tool "zig" "Zig" "version" "winget install zig.zig") { $hasCompiler = $true; $passed++ }
-elseif (Test-Tool "clang" "Clang" "--version" "winget install LLVM.LLVM") { $hasCompiler = $true; $passed++ }
+if (Test-Tool "clang" "Clang" "--version" "winget install LLVM.LLVM") { $hasCompiler = $true; $passed++ }
 elseif (Test-Tool "gcc" "GCC" "--version") { $hasCompiler = $true; $passed++ }
+elseif (Test-Tool "zig" "Zig" "version" "winget install zig.zig") { $hasCompiler = $true; $passed++ }
 elseif (Test-Tool "cl" "MSVC (cl.exe)" "" "Visual Studio Build Tools") { $hasCompiler = $true; $passed++ }
 else { $failed++ }
 
 if (-not $hasCompiler) {
-    Write-Info "Mindestens einer benoetigt: zig (empfohlen), clang, gcc oder cl"
+    Write-Info "Mindestens einer benoetigt: clang, gcc, zig oder cl"
 }
 
 # ============================================================================

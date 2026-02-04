@@ -54,11 +54,10 @@ $AsyncompleteRepo = "https://github.com/ulfbert-san/asyncomplete-omnisharp.git"
 $AsyncompletePath = "C:\Users\$env:USERNAME\Repos\asyncomplete-omnisharp"
 
 # Tools die via winget installiert werden
-# Hinweis: zig statt LLVM - kleiner, schneller, zuverlaessigerer PATH
 $WingetPackages = @(
     @{ Id = "Neovim.Neovim"; Name = "Neovim" },
     @{ Id = "Git.Git"; Name = "Git" },
-    @{ Id = "zig.zig"; Name = "Zig (C-Compiler fuer Treesitter)" },
+    @{ Id = "LLVM.LLVM"; Name = "LLVM/Clang (C-Compiler)" },
     @{ Id = "BurntSushi.ripgrep.MSVC"; Name = "ripgrep" },
     @{ Id = "sharkdp.fd"; Name = "fd" },
     @{ Id = "junegunn.fzf"; Name = "fzf" },
@@ -70,7 +69,7 @@ $WingetPackages = @(
 $MinimalPackages = @(
     @{ Id = "Neovim.Neovim"; Name = "Neovim" },
     @{ Id = "Git.Git"; Name = "Git" },
-    @{ Id = "zig.zig"; Name = "Zig (C-Compiler fuer Treesitter)" },
+    @{ Id = "LLVM.LLVM"; Name = "LLVM/Clang (C-Compiler)" },
     @{ Id = "BurntSushi.ripgrep.MSVC"; Name = "ripgrep" },
     @{ Id = "sharkdp.fd"; Name = "fd" }
 )
@@ -390,7 +389,7 @@ if (-not $Minimal -and -not $SkipFlutter) {
 }
 
 Write-Host "`nInstallierte Tools pruefen:" -ForegroundColor Cyan
-$tools = @("nvim", "git", "zig", "rg", "fd", "fzf", "lazygit", "dotnet", "lua-language-server")
+$tools = @("nvim", "git", "clang", "rg", "fd", "fzf", "lazygit", "dotnet", "lua-language-server")
 foreach ($tool in $tools) {
     $status = if (Test-CommandExists $tool) { "[OK]" } else { "[--]" }
     $color = if ($status -eq "[OK]") { "Green" } else { "Yellow" }
