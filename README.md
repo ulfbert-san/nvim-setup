@@ -31,15 +31,23 @@ cd nvim-setup
 | fd | Schnelle Dateisuche (Telescope) |
 | fzf | Fuzzy Finder |
 | lazygit | Git TUI |
-| .NET SDK 8 | C# Entwicklung |
-| lua-language-server | Lua LSP |
+| .NET SDK 10 | C# Entwicklung |
+
+### Von Mason / Plugins automatisch installiert
+
+Diese Tools werden **nicht** mehr manuell heruntergeladen, sondern beim ersten
+`nvim`-Start (bzw. on demand) verwaltet:
+
+| Tool | Zweck | Verwaltet von |
+|------|-------|---------------|
+| lua-language-server | Lua LSP | Mason (`ensure_installed` in `mason.lua`) |
+| netcoredbg | .NET Debugger | Mason (`mason-nvim-dap`) |
+| OmniSharp | C# Language Server | omnisharp-vim (`:OmniSharpInstall`) |
 
 ### Zusaetzliche Tools (manuell heruntergeladen)
 
 | Tool | Zweck | Installationspfad |
 |------|-------|-------------------|
-| OmniSharp | C# Language Server | `%LOCALAPPDATA%\omnisharp` |
-| netcoredbg | .NET Debugger | `%LOCALAPPDATA%\netcoredbg` |
 | JetBrainsMono Nerd Font | Icons im Terminal | System Fonts |
 
 ### Optional
@@ -74,21 +82,31 @@ cd nvim-setup
    ```
    Beim ersten Start werden automatisch alle Plugins installiert.
 
-3. **Gesundheitscheck:**
-   In Neovim `:checkhealth` ausfuehren.
+   Beim ersten Start installiert Mason automatisch `lua-language-server`
+   und `netcoredbg`.
+
+3. **C#-Server installieren (einmalig):**
+   In Neovim `:OmniSharpInstall` ausfuehren - laedt den OmniSharp net6-Server
+   fuer omnisharp-vim herunter.
+
+4. **Gesundheitscheck:**
+   In Neovim `:checkhealth` und `:Mason` ausfuehren.
 
 ## Abhaengigkeiten der Neovim-Konfiguration
 
 ```
 nvimconfig
 ├── Plugin Manager: lazy.nvim (automatisch)
+├── Tool-Manager: Mason (verwaltet LSP/DAP-Binaries automatisch)
 ├── Treesitter: benoetigt C-Compiler (clang/gcc/zig)
 ├── Telescope: benoetigt ripgrep, fd
 ├── LSP
-│   ├── lua-language-server (Lua)
-│   └── OmniSharp (C#)
+│   ├── lua-language-server (Lua) - via Mason
+│   └── omnisharp-vim + OmniSharp (C#) - via :OmniSharpInstall
+├── Completion
+│   └── asyncomplete.vim + asyncomplete-omnisharp (lokales Plugin)
 ├── Debugger
-│   └── netcoredbg via Vimspector (C#/.NET)
+│   └── nvim-dap + netcoredbg (C#/.NET) - netcoredbg via Mason
 ├── Git Integration
 │   └── lazygit via snacks.nvim
 └── Optional
@@ -97,18 +115,18 @@ nvimconfig
 
 ## Manuelle Installation einzelner Komponenten
 
-### OmniSharp
-```powershell
-# Download von https://github.com/OmniSharp/omnisharp-roslyn/releases
-# Entpacken nach %LOCALAPPDATA%\omnisharp
-# Zum PATH hinzufuegen
+### OmniSharp (C# Server)
+Wird von omnisharp-vim verwaltet - kein manueller Download noetig:
 ```
+:OmniSharpInstall      " in Neovim ausfuehren
+```
+Installationspfad: `%LOCALAPPDATA%\omnisharp-vim\omnisharp-roslyn\`
 
-### netcoredbg
-```powershell
-# Download von https://github.com/Samsung/netcoredbg/releases
-# Entpacken nach %LOCALAPPDATA%\netcoredbg
-# Zum PATH hinzufuegen
+### netcoredbg / lua-language-server
+Werden von Mason verwaltet (automatisch beim ersten Start). Manuell:
+```
+:Mason                 " UI oeffnen
+:MasonInstall netcoredbg lua-language-server
 ```
 
 ### Flutter SDK
@@ -137,13 +155,16 @@ clang --version
 ```
 
 ### OmniSharp startet nicht
-```powershell
-# Pruefen ob OmniSharp im PATH ist
-where.exe OmniSharp.exe
-
-# Manuell testen
-OmniSharp.exe --help
 ```
+" In Neovim: Server (neu) installieren
+:OmniSharpInstall
+
+" Server-Status / Logs
+:OmniSharpStatus
+```
+Der Server liegt unter `%LOCALAPPDATA%\omnisharp-vim\omnisharp-roslyn\`.
+Wichtig: Die Config nutzt den net6-Build (`OmniSharp_server_use_net6 = 1`),
+da der .NET-Framework-Build mit .NET 9/10 SDKs bricht.
 
 ### Icons werden nicht angezeigt
 1. Nerd Font installiert?

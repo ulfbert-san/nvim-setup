@@ -12,11 +12,13 @@
     - fd (fuer schnellere Dateisuche)
     - fzf (Fuzzy Finder)
     - lazygit (Git TUI)
-    - .NET SDK (fuer C# Entwicklung)
-    - lua-language-server
-    - OmniSharp (C# LSP)
-    - netcoredbg (C# Debugger)
+    - .NET SDK 10 (fuer C# Entwicklung)
     - Eine Nerd Font (fuer Icons)
+
+    Hinweis: lua-language-server und netcoredbg werden von Mason verwaltet
+    (automatisch beim ersten nvim-Start). Der C#-Server (OmniSharp) wird von
+    omnisharp-vim selbst installiert (:OmniSharpInstall). Dieses Skript laedt
+    diese Tools daher NICHT mehr manuell herunter.
 
 .NOTES
     Ausfuehren als Administrator!
@@ -62,7 +64,7 @@ $WingetPackages = @(
     @{ Id = "sharkdp.fd"; Name = "fd" },
     @{ Id = "junegunn.fzf"; Name = "fzf" },
     @{ Id = "JesseDuffield.lazygit"; Name = "lazygit" },
-    @{ Id = "Microsoft.DotNet.SDK.8"; Name = ".NET SDK 8" }
+    @{ Id = "Microsoft.DotNet.SDK.10"; Name = ".NET SDK 10" }
 )
 
 $MinimalPackages = @(
@@ -104,99 +106,6 @@ function Install-WingetPackage {
     } else {
         Write-Warning "$($Package.Name) Installation fehlgeschlagen - manuell installieren"
     }
-}
-
-function Install-OmniSharp {
-    Write-Step "Installiere OmniSharp..."
-
-    $omniSharpPath = "$env:LOCALAPPDATA\omnisharp"
-
-    if (Test-Path "$omniSharpPath\OmniSharp.exe") {
-        Write-Success "OmniSharp ist bereits installiert"
-        return
-    }
-
-    if ($DryRun) {
-        Write-Warning "DryRun: Wuerde OmniSharp nach $omniSharpPath installieren"
-        return
-    }
-
-    # Neueste Version von GitHub holen
-    $releases = Invoke-RestMethod "https://api.github.com/repos/OmniSharp/omnisharp-roslyn/releases/latest"
-    $asset = $releases.assets | Where-Object { $_.name -match "omnisharp-win-x64-net6" } | Select-Object -First 1
-
-    if (-not $asset) {
-        Write-Warning "Konnte OmniSharp Release nicht finden - manuell installieren"
-        Write-Warning "https://github.com/OmniSharp/omnisharp-roslyn/releases"
-        return
-    }
-
-    $zipPath = "$env:TEMP\omnisharp.zip"
-    Write-Host "    Downloading $($asset.name)..."
-    Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $zipPath
-
-    New-Item -ItemType Directory -Force -Path $omniSharpPath | Out-Null
-    Expand-Archive -Path $zipPath -DestinationPath $omniSharpPath -Force
-    Remove-Item $zipPath
-
-    # Zum PATH hinzufuegen
-    $currentPath = [Environment]::GetEnvironmentVariable("PATH", "User")
-    if ($currentPath -notlike "*$omniSharpPath*") {
-        [Environment]::SetEnvironmentVariable("PATH", "$currentPath;$omniSharpPath", "User")
-        Write-Success "OmniSharp zum PATH hinzugefuegt"
-    }
-
-    Write-Success "OmniSharp installiert nach $omniSharpPath"
-}
-
-function Install-NetCoreDbg {
-    Write-Step "Installiere netcoredbg..."
-
-    $dbgPath = "$env:LOCALAPPDATA\netcoredbg"
-
-    if (Test-Path "$dbgPath\netcoredbg.exe") {
-        Write-Success "netcoredbg ist bereits installiert"
-        return
-    }
-
-    if ($DryRun) {
-        Write-Warning "DryRun: Wuerde netcoredbg nach $dbgPath installieren"
-        return
-    }
-
-    # Neueste Version von GitHub holen
-    $releases = Invoke-RestMethod "https://api.github.com/repos/Samsung/netcoredbg/releases/latest"
-    $asset = $releases.assets | Where-Object { $_.name -match "win64" } | Select-Object -First 1
-
-    if (-not $asset) {
-        Write-Warning "Konnte netcoredbg Release nicht finden - manuell installieren"
-        Write-Warning "https://github.com/Samsung/netcoredbg/releases"
-        return
-    }
-
-    $zipPath = "$env:TEMP\netcoredbg.zip"
-    Write-Host "    Downloading $($asset.name)..."
-    Invoke-WebRequest -Uri $asset.browser_download_url -OutFile $zipPath
-
-    New-Item -ItemType Directory -Force -Path $dbgPath | Out-Null
-    Expand-Archive -Path $zipPath -DestinationPath $dbgPath -Force
-    Remove-Item $zipPath
-
-    # netcoredbg ist in einem Unterordner
-    $subDir = Get-ChildItem -Path $dbgPath -Directory | Select-Object -First 1
-    if ($subDir -and (Test-Path "$($subDir.FullName)\netcoredbg.exe")) {
-        Move-Item "$($subDir.FullName)\*" $dbgPath -Force
-        Remove-Item $subDir.FullName -Force -Recurse -ErrorAction SilentlyContinue
-    }
-
-    # Zum PATH hinzufuegen
-    $currentPath = [Environment]::GetEnvironmentVariable("PATH", "User")
-    if ($currentPath -notlike "*$dbgPath*") {
-        [Environment]::SetEnvironmentVariable("PATH", "$currentPath;$dbgPath", "User")
-        Write-Success "netcoredbg zum PATH hinzugefuegt"
-    }
-
-    Write-Success "netcoredbg installiert nach $dbgPath"
 }
 
 function Install-NerdFont {
@@ -350,8 +259,6 @@ foreach ($pkg in $packages) {
 # Spezielle Tools
 if (-not $Minimal) {
     Write-Host "`n=== Entwicklungstools ===" -ForegroundColor Yellow
-    Install-OmniSharp
-    Install-NetCoreDbg
     Install-NerdFont
 
     if (-not $SkipFlutter) {
@@ -378,8 +285,11 @@ Write-Host "=" * 60
 
 Write-Host "`nNaechste Schritte:" -ForegroundColor Yellow
 Write-Host "  1. Terminal neu starten (fuer PATH Aenderungen)"
-Write-Host "  2. 'nvim' starten - Plugins werden automatisch installiert"
-Write-Host "  3. In Neovim ':checkhealth' ausfuehren"
+Write-Host "  2. 'nvim' starten - Plugins + Mason-Tools (lua-language-server,"
+Write-Host "     netcoredbg) werden automatisch installiert"
+Write-Host "  3. Fuer C#: einmalig ':OmniSharpInstall' ausfuehren (laedt den"
+Write-Host "     OmniSharp net6-Server fuer omnisharp-vim)"
+Write-Host "  4. In Neovim ':checkhealth' und ':Mason' ausfuehren"
 
 if (-not $Minimal -and -not $SkipFlutter) {
     Write-Host "`nFalls du Flutter nutzt:" -ForegroundColor Yellow

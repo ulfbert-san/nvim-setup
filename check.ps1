@@ -114,32 +114,40 @@ if (Test-Tool "lazygit" "lazygit" "--version" "winget install JesseDuffield.lazy
 # ============================================================================
 Write-Host "`n=== .NET / C# Entwicklung ===" -ForegroundColor Yellow
 
-if (Test-Tool "dotnet" ".NET SDK" "--version" "winget install Microsoft.DotNet.SDK.8") { $passed++ } else { $failed++ }
+if (Test-Tool "dotnet" ".NET SDK" "--version" "winget install Microsoft.DotNet.SDK.10") { $passed++ } else { $failed++ }
 
-# OmniSharp
-$omniSharpPath = "$env:LOCALAPPDATA\omnisharp\OmniSharp.exe"
-if (Test-Path $omniSharpPath) {
-    Write-OK "OmniSharp ($omniSharpPath)"
-    $passed++
-} elseif (Get-Command "OmniSharp" -ErrorAction SilentlyContinue) {
-    Write-OK "OmniSharp (im PATH)"
+# C#-Server & -Debugger werden NICHT mehr manuell installiert:
+#   - netcoredbg via Mason (mason-nvim-dap, beim ersten nvim-Start)
+#   - OmniSharp via omnisharp-vim selbst (:OmniSharpInstall)
+# Fehlen sie noch, ist das kein harter Fehler -> nur Hinweis.
+
+$masonPkgs = "$env:LOCALAPPDATA\nvim-data\mason\packages"
+
+# netcoredbg (Mason) - Pfad muss mit dap.lua uebereinstimmen
+$netcoredbgPath = "$masonPkgs\netcoredbg\netcoredbg\netcoredbg.exe"
+if (Test-Path $netcoredbgPath) {
+    Write-OK "netcoredbg (Mason)"
     $passed++
 } else {
-    Write-Fail "OmniSharp (install.ps1 erneut ausfuehren)"
-    $failed++
+    Write-Info "netcoredbg wird beim ersten nvim-Start von Mason installiert"
 }
 
-# netcoredbg
-$netcoredbgPath = "$env:LOCALAPPDATA\netcoredbg\netcoredbg.exe"
-if (Test-Path $netcoredbgPath) {
-    Write-OK "netcoredbg ($netcoredbgPath)"
-    $passed++
-} elseif (Get-Command "netcoredbg" -ErrorAction SilentlyContinue) {
-    Write-OK "netcoredbg (im PATH)"
+# OmniSharp (von omnisharp-vim verwaltet)
+$omniSharpPath = "$env:LOCALAPPDATA\omnisharp-vim\omnisharp-roslyn\OmniSharp.exe"
+if (Test-Path $omniSharpPath) {
+    Write-OK "OmniSharp (omnisharp-vim)"
     $passed++
 } else {
-    Write-Fail "netcoredbg (install.ps1 erneut ausfuehren)"
-    $failed++
+    Write-Info "OmniSharp: in nvim ':OmniSharpInstall' ausfuehren (fuer C#)"
+}
+
+# lua-language-server (Mason)
+$luaLsPath = "$masonPkgs\lua-language-server"
+if (Test-Path $luaLsPath) {
+    Write-OK "lua-language-server (Mason)"
+    $passed++
+} else {
+    Write-Info "lua-language-server wird beim ersten nvim-Start von Mason installiert"
 }
 
 
